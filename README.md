@@ -1,23 +1,28 @@
-# Mayhem Squad Call
+# Simon VC: Mayhem Squad Call
 
-A 1-on-1 voice and video "party" that runs in any web browser. You don't need Discord, an account, or an install.
+Voice, video and chat for up to **7 people**, right in the browser. No Discord, no installs, no accounts.
 
-- **Host** (just you): tap **Host login**, enter the password, then **Start a party**. You get a 4-digit code.
-- **Friend**: open the site, type the code, then **Join party**. You can also send them the link from **Copy link** (`?code=1234`) so the code is already filled in.
-- One party at a time, two people max. If a third person tries to join, they're told it's full.
-- Your code stays the same until you press **End party**, so refreshing the page won't break it.
-- In a call you can mute, turn your camera off, share your screen (on desktop) and boost your friend's volume up to **300%** (it's saved per person).
+Live at **https://brsi4653-wq.github.io/Simon-VC/**
+
+## How it works
+- **Host** (just you): open the site, go to the **Host** tab, log in, then **Start a party**.
+- Every party gets a **fresh random 4-digit code** and its own **invite link** (`.../Simon-VC/?p=1234`).
+  The same code only comes back if you reconnect within 30 seconds (refresh, dropped Wi-Fi). Otherwise it's a new code.
+- **Friends** either type the code on the main page, or open the invite link. The link only asks for their name.
+  If they've used the site before, it joins them straight away with their saved name and camera/mic choice.
+- Up to 7 people in one party. The host can **lock** the party so nobody new can join, and **remove** people (click their name).
+- Mute (Ctrl+Shift+M), camera, screen share (desktop) with a big spotlight view, and per-person volume up to **300%** (click someone's name). Volume is saved for each person.
 - Green rings show who's talking.
-- **Chat** with emoji, stickers, links, a typing indicator and quick reactions that float over the video. The host's browser keeps the chat history, so it's still there when someone rejoins. The host can clear it.
-- **Badges**: only the host can hand them out (the 🏅 *Manage badges* button, or click someone's name). There are built-in badges and you can make your own. A person's top badge colors their name. Badges are saved in the host's browser, so hand them out from the same device you host on.
+- **Chat** with emoji, stickers, links, a typing indicator and floating reactions. The host's browser keeps the history, so it's still there when people rejoin.
+- **Badges**: only the host can hand them out (*Manage badges*, or click someone's name). There are built-in badges and you can make your own. A person's top badge colors their name.
 
-The whole app is `index.html` (plus the logos in `assets/`). Calls go straight between the two browsers over WebRTC, using the free PeerJS server to connect them.
-
-## Hosting on GitHub Pages
-Settings → Pages → Deploy from a branch → `main` / `(root)`.
+## How it's built
+Everything is in `index.html`, plus the logos in `assets/`. Every pair of people connects directly over WebRTC (a "mesh").
+The free PeerJS server only introduces people to each other. Chat and the party roster go through the host's browser.
+Camera quality drops automatically as the party grows, so 7 people stays smooth.
 
 ## Changing the host password
-The password is not stored in this repo, only a slow PBKDF2 hash of it. To change it, open the site, open the browser console (F12) and run:
+Only a slow PBKDF2 hash of the password is stored here. Open the site, press F12 and run:
 
 ```js
 await hashPassword("your new password")
@@ -25,5 +30,5 @@ await hashPassword("your new password")
 
 Paste the result into `HOST_HASH` in `index.html`.
 
-## If a call connects but there's no sound or video
-A few strict networks (some school or mobile networks) need a TURN relay. Add TURN credentials (Cloudflare and Metered have free tiers) to `ICE_SERVERS` in `index.html`.
+## If someone connects but has no sound or video
+Some strict networks (school, some mobile carriers) need a TURN relay. Add TURN credentials (Cloudflare and Metered have free tiers) to `ICE_SERVERS` in `index.html`.
