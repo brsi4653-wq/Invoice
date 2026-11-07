@@ -1,13 +1,667 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Need An Invoice By: SHIPS — Minimalist PDF Conversion</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Squad Call</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Figtree:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#eef0f6; --panel:#ffffff; --tile:#d9dce8; --fg:#151826; --muted:#5c6178;
+  --accent:#6a3df0; --accent-fg:#ffffff; --live:#12a36b; --danger:#e0384b; --line:#c9cddc;
+  --display:"Chakra Petch", "Arial Narrow", system-ui, sans-serif;
+  --body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0d0f18; --panel:#161927; --tile:#1d2133; --fg:#eceefa; --muted:#9097b4;
+  --accent:#8b66ff; --accent-fg:#0d0f18; --live:#2fd58f; --danger:#ff5468; --line:#2a2f47; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d0f18; --panel:#161927; --tile:#1d2133; --fg:#eceefa; --muted:#9097b4;
+  --accent:#8b66ff; --accent-fg:#0d0f18; --live:#2fd58f; --danger:#ff5468; --line:#2a2f47; color-scheme:dark}
 
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+h1,h2{font-family:var(--display);letter-spacing:.02em;margin:0;text-wrap:balance}
+h2{font-size:18px;text-transform:uppercase}
+button,input{font:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+/* Lobby */
+#lobby{min-height:100%;display:grid;place-items:center;padding-block:32px}
+.card{width:100%;max-width:420px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:28px;display:grid;gap:20px}
+.brand h1{font-size:30px;text-transform:uppercase}
+.brand p{margin:2px 0 0;color:var(--muted);font-size:14px}
+.field{display:grid;gap:6px}
+.field label,.label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.field input{padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg);width:100%}
+#codeInput{font-family:var(--display);font-size:32px;font-weight:700;letter-spacing:.5em;text-align:center;padding:10px 0 10px .5em}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mode{border:2px solid var(--line);background:var(--bg);color:var(--fg);border-radius:12px;padding:12px;text-align:left;display:grid;gap:2px}
+.mode strong{font-family:var(--display);font-size:16px}
+.mode span{font-size:13px;color:var(--muted)}
+.mode[aria-pressed="true"]{border-color:var(--accent)}
+.primary{background:var(--accent);color:var(--accent-fg);border:0;border-radius:10px;padding:14px;font-family:var(--display);font-size:17px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;width:100%}
+.primary:disabled{opacity:.6;cursor:wait}
+.ghost{border:1px solid var(--line);background:transparent;color:var(--fg);border-radius:10px;padding:10px 14px;font-weight:600}
+.link{border:0;background:none;color:var(--muted);padding:0;font-size:13px;text-decoration:underline;text-underline-offset:3px}
+.row{display:flex;gap:8px;align-items:stretch}
+.row input{flex:1;min-width:0}
+.hint{font-size:13px;color:var(--muted);margin:0}
+.error{color:var(--danger);font-size:14px;margin:0}
+.section{display:grid;gap:12px;padding-top:20px;border-top:1px solid var(--line)}
+.section-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+
+/* Call */
+#call{height:100%;display:grid;grid-template-rows:auto 1fr auto;gap:12px;padding-block:12px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.status{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--muted);flex:none}
+.dot.live{background:var(--live);box-shadow:0 0 0 4px color-mix(in srgb,var(--live) 25%,transparent)}
+.code-pill{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:4px 6px 4px 14px;font-size:13px;color:var(--muted)}
+.code-pill b{font-family:var(--display);font-size:18px;letter-spacing:.2em;color:var(--fg)}
+.code-pill button{padding:4px 10px;border-radius:999px;font-size:12px}
+.stage{position:relative;min-height:0;background:var(--tile);border-radius:14px;overflow:hidden}
+video{width:100%;height:100%;object-fit:cover;display:block;background:var(--tile)}
+#remoteVid,#screenVid{object-fit:contain;position:absolute;inset:0}
+.placeholder{position:absolute;inset:0;display:grid;place-items:center;align-content:center;gap:10px;text-align:center;padding:16px}
+.avatar{width:96px;height:96px;border-radius:50%;background:var(--accent);color:var(--accent-fg);display:grid;place-items:center;font-family:var(--display);font-size:40px;font-weight:700}
+.placeholder p{margin:0;color:var(--muted);max-width:32ch}
+.big-code{font-family:var(--display);font-size:56px;font-weight:700;letter-spacing:.25em;color:var(--fg);line-height:1;padding-left:.25em}
+.chips{position:absolute;left:12px;bottom:12px;display:flex;gap:6px;flex-wrap:wrap}
+.chip{background:color-mix(in srgb,var(--panel) 85%,transparent);padding:4px 10px;border-radius:999px;font-size:13px;font-weight:600}
+.chip.warn{color:var(--danger)}
+.self{position:absolute;right:12px;top:12px;width:min(30%,180px);aspect-ratio:4/3;border-radius:10px;overflow:hidden;border:2px solid var(--panel);background:var(--tile)}
+.self video{transform:scaleX(-1)}
+.self .placeholder .avatar{width:40px;height:40px;font-size:18px}
+.dock{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap}
+.ctl{min-width:64px;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:12px;padding:10px 12px;display:grid;justify-items:center;gap:2px;font-size:12px;font-weight:600}
+.ctl svg{width:22px;height:22px}
+.ctl[aria-pressed="true"]{background:var(--danger);border-color:var(--danger);color:#fff}
+#shareBtn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.ctl.leave{background:var(--danger);border-color:var(--danger);color:#fff}
+.vol{display:grid;gap:2px;justify-items:center;font-size:12px;font-weight:600;color:var(--muted)}
+.vol input{width:96px;accent-color:var(--accent)}
+@media (max-width:480px){.card{padding:20px}.brand h1{font-size:24px}.big-code{font-size:44px}}
+</style>
+</head>
+<body>
+
+<main id="lobby">
+  <div class="card">
+    <div class="brand">
+      <h1>Squad Call</h1>
+      <p>Voice and video for the squad, right in the browser.</p>
+    </div>
+
+    <div class="field">
+      <label for="nameInput">Your name</label>
+      <input id="nameInput" maxlength="20" placeholder="SimonSaysGGs" autocomplete="nickname">
+    </div>
+
+    <div class="field">
+      <span class="label">Join with</span>
+      <div class="modes">
+        <button class="mode" id="modeVideo" aria-pressed="true" type="button"><strong>Video + voice</strong><span>Camera and mic</span></button>
+        <button class="mode" id="modeAudio" aria-pressed="false" type="button"><strong>Voice only</strong><span>Just your mic</span></button>
+      </div>
+    </div>
+
+    <!-- Guests -->
+    <form class="field" id="joinForm" autocomplete="off">
+      <label for="codeInput">Party code</label>
+      <input id="codeInput" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="0000" aria-describedby="joinHint">
+      <button class="primary" id="joinBtn" type="submit">Join party</button>
+      <p class="hint" id="joinHint">Ask the host for the 4-digit code.</p>
+    </form>
+
+    <!-- Host -->
+    <div class="section" id="hostSection">
+      <div class="section-head">
+        <h2>Host</h2>
+        <button class="link" id="logoutBtn" type="button" hidden>Log out</button>
+      </div>
+
+      <button class="ghost" id="showLoginBtn" type="button">Host login</button>
+
+      <form class="field" id="loginForm" hidden>
+        <label for="pwInput">Host password</label>
+        <div class="row">
+          <input id="pwInput" type="password" autocomplete="current-password">
+          <button class="ghost" id="loginBtn" type="submit">Log in</button>
+        </div>
+      </form>
+
+      <div class="field" id="hostPanel" hidden>
+        <button class="primary" id="startBtn" type="button">Start a party</button>
+        <p class="hint" id="hostHint">You get a 4-digit code to give your friend. One party at a time, two people max.</p>
+      </div>
+    </div>
+
+    <p class="error" id="lobbyError" role="alert" hidden></p>
+  </div>
+</main>
+
+<section id="call" hidden>
+  <div class="topbar">
+    <div class="status"><span class="dot" id="dot"></span><span id="statusText">Waiting</span></div>
+    <div class="code-pill" id="codePill" hidden>
+      Code <b id="codeTop"></b>
+      <button class="ghost" id="copyBtn" type="button">Copy link</button>
+    </div>
+  </div>
+
+  <div class="stage">
+    <audio id="remoteAudio" autoplay></audio>
+    <video id="remoteVid" autoplay playsinline muted hidden></video>
+    <video id="screenVid" autoplay playsinline hidden></video>
+    <div class="placeholder" id="remotePh">
+      <div class="avatar" id="remoteAvatar">?</div>
+      <div class="big-code" id="bigCode" hidden></div>
+      <p id="remotePhText">Connecting...</p>
+    </div>
+    <div class="chips">
+      <span class="chip" id="remoteName" hidden></span>
+      <span class="chip warn" id="remoteMuted" hidden>Muted</span>
+    </div>
+
+    <div class="self">
+      <video id="localVid" autoplay playsinline muted></video>
+      <div class="placeholder" id="localPh" hidden><div class="avatar" id="localAvatar">S</div></div>
+    </div>
+  </div>
+
+  <div class="dock">
+    <button class="ctl" id="micBtn" aria-pressed="false" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+      <span id="micLabel">Mute</span>
+    </button>
+    <button class="ctl" id="camBtn" aria-pressed="false" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3z"/></svg>
+      <span id="camLabel">Camera off</span>
+    </button>
+    <button class="ctl" id="shareBtn" aria-pressed="false" type="button" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4M12 13V7M9 10l3-3 3 3"/></svg>
+      <span id="shareLabel">Share screen</span>
+    </button>
+    <label class="vol">
+      <input id="volInput" type="range" min="0" max="1" step="0.05" value="1" aria-label="Friend's volume">
+      Volume
+    </label>
+    <button class="ctl leave" id="leaveBtn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 15c5-4 13-4 18 0l-2 3-4-1v-3c-2-.6-4-.6-6 0v3l-4 1z"/></svg>
+      <span id="leaveLabel">Leave</span>
+    </button>
+  </div>
+</section>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+/* ================= settings ================= */
+// Keeps party IDs from clashing with other apps on the free PeerJS server.
+const PREFIX = "squadcall-ssg-party-";
+// The host password is never stored in this file, only a slow PBKDF2 hash of it.
+// To change it, run in a browser console:  await hashPassword("new password")
+// and paste the result here.
+const HOST_HASH = "79f40d3092081926f7ba3ebed01dec56b0c8c69ca5417b2dc238668153854408";
+const HASH_SALT = "squadcall-host-v1";
+const HASH_ROUNDS = 150000;
+// STUN works on most home internet. If a call connects but there's no audio/video,
+// add a TURN server here (e.g. free Cloudflare or Metered TURN credentials).
+const ICE_SERVERS = [
+  { urls: "stun:stun.l.google.com:19302" },
+  { urls: "stun:stun.cloudflare.com:3478" }
+];
+// Optional override (used for local testing against your own PeerJS server).
+const PEER_OPTS = Object.assign({ config: { iceServers: ICE_SERVERS } }, window.SQUAD_PEER_OPTS || {});
+
+/* ================= helpers ================= */
+const $ = id => document.getElementById(id);
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+  del(k) { try { localStorage.removeItem(k); } catch (e) {} }
+};
+const initial = n => ((n || "?").trim().charAt(0).toUpperCase() || "?");
+const randomCode = () => String(Math.floor(Math.random() * 10000)).padStart(4, "0");
+
+async function hashPassword(pw) {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey("raw", enc.encode(pw), "PBKDF2", false, ["deriveBits"]);
+  const bits = await crypto.subtle.deriveBits(
+    { name: "PBKDF2", salt: enc.encode(HASH_SALT), iterations: HASH_ROUNDS, hash: "SHA-256" }, key, 256);
+  return [...new Uint8Array(bits)].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+function showLobbyError(msg) {
+  $("lobbyError").textContent = msg;
+  $("lobbyError").hidden = !msg;
+}
+function resetButtons() {
+  $("joinBtn").disabled = false; $("joinBtn").textContent = "Join party";
+  $("startBtn").disabled = false; refreshHostUI();
+}
+function setStatus(text, live) {
+  $("statusText").textContent = text;
+  $("dot").classList.toggle("live", !!live);
+}
+
+/* ================= lobby ================= */
+const params = new URLSearchParams(location.search);
+const linkCode = (params.get("code") || "").replace(/\D/g, "").slice(0, 4);
+if (linkCode) $("codeInput").value = linkCode;
+$("nameInput").value = store.get("squadcall-name") || "";
+
+let wantVideo = store.get("squadcall-mode") !== "audio";
+function setMode(video) {
+  wantVideo = video;
+  store.set("squadcall-mode", video ? "video" : "audio");
+  $("modeVideo").setAttribute("aria-pressed", video);
+  $("modeAudio").setAttribute("aria-pressed", !video);
+}
+setMode(wantVideo);
+$("modeVideo").onclick = () => setMode(true);
+$("modeAudio").onclick = () => setMode(false);
+
+$("codeInput").addEventListener("input", e => { e.target.value = e.target.value.replace(/\D/g, "").slice(0, 4); });
+
+const isHost = () => store.get("squadcall-host") === HOST_HASH;
+function refreshHostUI() {
+  const on = isHost();
+  $("showLoginBtn").hidden = on || !$("loginForm").hidden;
+  $("hostPanel").hidden = !on;
+  $("logoutBtn").hidden = !on;
+  if (on) $("loginForm").hidden = true;
+  const saved = store.get("squadcall-party");
+  $("startBtn").textContent = saved ? "Reopen party " + saved : "Start a party";
+}
+refreshHostUI();
+
+$("showLoginBtn").onclick = () => { $("loginForm").hidden = false; $("showLoginBtn").hidden = true; $("pwInput").focus(); };
+$("loginForm").onsubmit = async e => {
+  e.preventDefault();
+  showLobbyError("");
+  $("loginBtn").disabled = true;
+  try {
+    const h = await hashPassword($("pwInput").value);
+    if (h === HOST_HASH) { store.set("squadcall-host", HOST_HASH); $("pwInput").value = ""; refreshHostUI(); }
+    else showLobbyError("Wrong password.");
+  } catch (err) {
+    showLobbyError("Login needs a secure (https) page.");
+  }
+  $("loginBtn").disabled = false;
+};
+$("logoutBtn").onclick = () => { store.del("squadcall-host"); refreshHostUI(); };
+
+function readName() {
+  const n = ($("nameInput").value.trim() || "Player").slice(0, 20);
+  store.set("squadcall-name", n);
+  return n;
+}
+
+/* ================= call state ================= */
+let role = null;               // "host" | "guest"
+let peer = null, localStream = null;
+let camCall = null;            // our camera/mic call with the partner
+let dataConn = null;           // control channel with the partner
+let screenOut = null, screenStream = null, screenIn = null;
+let partner = {};              // { name, camOn, micOn, sharing }
+let partyCode = "", myName = "Player";
+let micOn = true, camOn = true;
+let joinTimer = null;
+
+async function getMedia() {
+  const audio = { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
+  try {
+    return await navigator.mediaDevices.getUserMedia({
+      audio, video: wantVideo ? { width: { ideal: 1280 }, height: { ideal: 720 } } : false
+    });
+  } catch (e) {
+    if (!wantVideo) throw e;
+    return await navigator.mediaDevices.getUserMedia({ audio }); // camera blocked: voice only
+  }
+}
+
+function myState() {
+  return { type: "state", name: myName, micOn,
+    camOn: camOn && !!localStream && localStream.getVideoTracks().length > 0,
+    sharing: !!screenOut };
+}
+function send(msg) { if (dataConn && dataConn.open) dataConn.send(msg); }
+
+function enterCall() {
+  $("lobby").hidden = true;
+  $("call").hidden = false;
+  $("localVid").srcObject = localStream;
+  $("localAvatar").textContent = initial(myName);
+  camOn = localStream.getVideoTracks().length > 0;
+  $("camBtn").hidden = !camOn;
+  $("shareBtn").hidden = !(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
+  $("leaveLabel").textContent = role === "host" ? "End party" : "Leave";
+  $("codePill").hidden = role !== "host";
+  $("codeTop").textContent = partyCode;
+  refreshLocal();
+  renderRemote();
+}
+
+function refreshLocal() {
+  const hasCam = localStream && localStream.getVideoTracks().length > 0 && camOn;
+  $("localPh").hidden = !!hasCam;
+  $("localVid").hidden = !hasCam;
+}
+
+function renderRemote() {
+  const connected = !!(dataConn && dataConn.open && partner.name);
+  const camStream = $("remoteVid").srcObject;
+  const hasCam = connected && camStream && camStream.getVideoTracks().length > 0 && partner.camOn !== false;
+  const hasScreen = connected && !!$("screenVid").srcObject && partner.sharing !== false;
+
+  $("screenVid").hidden = !hasScreen;
+  $("remoteVid").hidden = !hasCam || hasScreen;
+  $("remotePh").hidden = hasCam || hasScreen;
+
+  $("remoteName").hidden = !connected;
+  $("remoteName").textContent = (partner.name || "") + (hasScreen ? " · sharing screen" : "");
+  $("remoteMuted").hidden = !connected || partner.micOn !== false;
+  $("remoteAvatar").textContent = connected ? initial(partner.name) : "?";
+  $("remoteAvatar").hidden = !connected && role === "host";
+  $("bigCode").hidden = connected || role !== "host";
+  $("bigCode").textContent = partyCode;
+
+  if (connected) {
+    $("remotePhText").textContent = camStream ? partner.name + " is on voice only" : "Connecting to " + partner.name + "...";
+    setStatus(camStream ? "In a party with " + partner.name : "Connecting...", !!camStream);
+  } else if (role === "host") {
+    $("remotePhText").textContent = "Party is open. Give your friend this code.";
+    setStatus("Waiting for your friend", false);
+  }
+}
+
+function clearRemoteMedia() {
+  $("remoteVid").srcObject = null;
+  $("remoteAudio").srcObject = null;
+  $("screenVid").srcObject = null;
+}
+
+function closeCalls() {
+  stopShare(false);
+  [camCall, screenIn].forEach(c => { try { c && c.close(); } catch (e) {} });
+  camCall = screenIn = null;
+}
+
+/* ---------- media wiring ---------- */
+function wireCamCall(call) {
+  if (camCall && camCall !== call) { try { camCall.close(); } catch (e) {} }
+  camCall = call;
+  call.on("stream", s => {
+    if (camCall !== call) return;
+    $("remoteVid").srcObject = s;
+    $("remoteAudio").srcObject = s;
+    $("remoteVid").play().catch(() => {});
+    $("remoteAudio").play().catch(() => {});
+    renderRemote();
+  });
+  const done = () => { if (camCall === call) { camCall = null; $("remoteVid").srcObject = null; $("remoteAudio").srcObject = null; renderRemote(); } };
+  call.on("close", done);
+  call.on("error", done);
+}
+
+function acceptScreen(call) {
+  if (screenIn) { try { screenIn.close(); } catch (e) {} }
+  screenIn = call;
+  call.answer();
+  call.on("stream", s => {
+    if (screenIn !== call) return;
+    $("screenVid").srcObject = s;
+    $("screenVid").volume = Number($("volInput").value);
+    $("screenVid").play().catch(() => {});
+    renderRemote();
+  });
+  const done = () => { if (screenIn === call) { screenIn = null; $("screenVid").srcObject = null; renderRemote(); } };
+  call.on("close", done);
+  call.on("error", done);
+}
+
+function handleIncomingCall(call) {
+  // Only accept media from the person we're partied with.
+  if (!dataConn || call.peer !== dataConn.peer) { call.close(); return; }
+  if (call.metadata && call.metadata.kind === "screen") return acceptScreen(call);
+  call.answer(localStream);
+  wireCamCall(call);
+}
+
+/* ---------- data channel ---------- */
+function onData(conn, d) {
+  if (!d || typeof d !== "object") return;
+  if (d.type === "state") {
+    partner = { name: String(d.name || "Player").slice(0, 20), camOn: d.camOn !== false, micOn: d.micOn !== false, sharing: !!d.sharing };
+    if (!partner.sharing && screenIn) { try { screenIn.close(); } catch (e) {} screenIn = null; $("screenVid").srcObject = null; }
+    renderRemote();
+  } else if (d.type === "bye") {
+    partnerGone(role === "host" ? "left" : "ended");
+  }
+}
+
+function partnerGone(why) {
+  const conn = dataConn;
+  dataConn = null;
+  try { conn && conn.close(); } catch (e) {}
+  closeCalls();
+  clearRemoteMedia();
+  partner = {};
+  if (role === "host") {
+    renderRemote();
+    if (why === "left") setStatus("Your friend left. Party is still open.", false);
+  } else {
+    $("remoteAvatar").textContent = "?";
+    $("remoteName").hidden = true; $("remoteMuted").hidden = true;
+    $("remotePh").hidden = false; $("remoteVid").hidden = true; $("screenVid").hidden = true;
+    $("remotePhText").textContent = why === "ended" ? "The host ended the party." : "Lost the host. Hit Leave and rejoin with the same code.";
+    setStatus(why === "ended" ? "Party ended" : "Disconnected", false);
+  }
+}
+
+/* ================= hosting ================= */
+$("startBtn").onclick = async () => {
+  showLobbyError("");
+  if (!isHost()) return refreshHostUI();
+  $("startBtn").disabled = true; $("startBtn").textContent = "Starting...";
+  myName = readName();
+  try { localStream = await getMedia(); }
+  catch (e) { resetButtons(); return showLobbyError("Your browser blocked the mic. Allow microphone access in the address bar, then try again."); }
+  role = "host";
+  openParty(store.get("squadcall-party") || randomCode(), 0);
+};
+
+function openParty(code, attempt) {
+  peer = new Peer(PREFIX + code, PEER_OPTS);
+  let opened = false;
+
+  peer.on("open", () => {
+    opened = true;
+    partyCode = code;
+    store.set("squadcall-party", code);
+    enterCall();
+  });
+
+  peer.on("error", err => {
+    if (!opened && err.type === "unavailable-id") {
+      // Usually our own party from a page refresh that the server hasn't let go of yet.
+      try { peer.destroy(); } catch (e) {}
+      const retrySame = attempt < 2 && code === store.get("squadcall-party");
+      if (attempt >= 6) { cleanupToLobby(); return showLobbyError("Couldn't open a party. Try again in a minute."); }
+      setTimeout(() => openParty(retrySame ? code : randomCode(), attempt + 1), retrySame ? 3000 : 200);
+      $("startBtn").textContent = "Starting... (" + (attempt + 1) + ")";
+      return;
+    }
+    if (!opened) { cleanupToLobby(); return showLobbyError("Couldn't reach the call server (" + err.type + "). Check your internet and try again."); }
+    if (err.type !== "peer-unavailable") setStatus("Connection problem: " + err.type, false);
+  });
+
+  peer.on("disconnected", () => { if (peer && !peer.destroyed) peer.reconnect(); });
+
+  peer.on("connection", conn => {
+    conn.on("data", d => {
+      if (d && d.type === "hello") {
+        if (dataConn && dataConn.open && dataConn !== conn) {
+          conn.send({ type: "full" });
+          setTimeout(() => conn.close(), 800);
+          return;
+        }
+        dataConn = conn;
+        conn.send({ type: "welcome" });
+        conn.send(myState());
+        onData(conn, Object.assign({}, d, { type: "state" }));
+        return;
+      }
+      if (conn === dataConn) onData(conn, d);
+    });
+    conn.on("close", () => { if (conn === dataConn) partnerGone("left"); });
+  });
+
+  peer.on("call", handleIncomingCall);
+}
+
+/* ================= joining ================= */
+$("joinForm").onsubmit = async e => {
+  e.preventDefault();
+  showLobbyError("");
+  const code = $("codeInput").value.replace(/\D/g, "");
+  if (code.length !== 4) { $("codeInput").focus(); return showLobbyError("Enter the 4-digit party code."); }
+  $("joinBtn").disabled = true; $("joinBtn").textContent = "Joining...";
+  myName = readName();
+  try { localStream = await getMedia(); }
+  catch (err) { resetButtons(); return showLobbyError("Your browser blocked the mic. Allow microphone access in the address bar, then try again."); }
+  role = "guest";
+  partyCode = code;
+  joinParty(code);
+};
+
+function joinParty(code) {
+  const hostId = PREFIX + code;
+  peer = new Peer(PEER_OPTS);
+  let inCall = false;
+
+  const fail = msg => { cleanupToLobby(); showLobbyError(msg); };
+  joinTimer = setTimeout(() => { if (!inCall) fail("Couldn't connect to party " + code + ". Check the code, or ask the host to reopen it."); }, 15000);
+
+  peer.on("open", () => {
+    const conn = peer.connect(hostId, { reliable: true });
+    conn.on("open", () => conn.send({ type: "hello", name: myName, micOn, camOn: localStream.getVideoTracks().length > 0 }));
+    conn.on("data", d => {
+      if (!d) return;
+      if (d.type === "full") return fail("That party is full. It's two people max.");
+      if (d.type === "welcome") {
+        clearTimeout(joinTimer);
+        inCall = true;
+        dataConn = conn;
+        enterCall();
+        setStatus("Connecting...", false);
+        wireCamCall(peer.call(hostId, localStream, { metadata: { kind: "cam" } }));
+        return;
+      }
+      if (conn === dataConn) onData(conn, d);
+    });
+    conn.on("close", () => { if (inCall && conn === dataConn) partnerGone("lost"); });
+  });
+
+  peer.on("error", err => {
+    if (!inCall) {
+      if (err.type === "peer-unavailable") return fail("No party with code " + code + ". Check the code with your host.");
+      return fail("Couldn't reach the call server (" + err.type + "). Check your internet and try again.");
+    }
+    if (err.type === "peer-unavailable") partnerGone("lost");
+    else setStatus("Connection problem: " + err.type, false);
+  });
+
+  peer.on("disconnected", () => { if (peer && !peer.destroyed) peer.reconnect(); });
+  peer.on("call", handleIncomingCall);
+}
+
+/* ================= leaving ================= */
+function cleanupToLobby() {
+  clearTimeout(joinTimer);
+  closeCalls();
+  try { dataConn && dataConn.close(); } catch (e) {}
+  try { peer && peer.destroy(); } catch (e) {}
+  try { localStream && localStream.getTracks().forEach(t => t.stop()); } catch (e) {}
+  peer = localStream = dataConn = null;
+  partner = {}; role = null;
+  clearRemoteMedia();
+  micOn = true;
+  $("micBtn").setAttribute("aria-pressed", false); $("micLabel").textContent = "Mute";
+  $("camBtn").setAttribute("aria-pressed", false); $("camLabel").textContent = "Camera off";
+  $("call").hidden = true;
+  $("lobby").hidden = false;
+  resetButtons();
+}
+
+$("leaveBtn").onclick = () => {
+  send({ type: "bye" });
+  if (role === "host") store.del("squadcall-party"); // ending frees the code
+  setTimeout(cleanupToLobby, 150);                   // let the goodbye go out first
+};
+window.addEventListener("pagehide", () => { try { peer && peer.destroy(); } catch (e) {} });
+
+/* ================= controls ================= */
+$("micBtn").onclick = () => {
+  micOn = !micOn;
+  localStream.getAudioTracks().forEach(t => t.enabled = micOn);
+  $("micBtn").setAttribute("aria-pressed", !micOn);
+  $("micLabel").textContent = micOn ? "Mute" : "Unmute";
+  send(myState());
+};
+
+$("camBtn").onclick = () => {
+  camOn = !camOn;
+  localStream.getVideoTracks().forEach(t => t.enabled = camOn);
+  $("camBtn").setAttribute("aria-pressed", !camOn);
+  $("camLabel").textContent = camOn ? "Camera off" : "Camera on";
+  refreshLocal();
+  send(myState());
+};
+
+$("volInput").oninput = e => {
+  const v = Number(e.target.value);
+  $("remoteAudio").volume = v;
+  $("screenVid").volume = v;
+};
+
+$("shareBtn").onclick = async () => {
+  if (screenOut) return stopShare(true);
+  if (!dataConn || !dataConn.open) return setStatus("Your friend needs to be here to share your screen", false);
+  try {
+    screenStream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 30 } }, audio: true });
+  } catch (e) { return; } // picker cancelled
+  screenOut = peer.call(dataConn.peer, screenStream, { metadata: { kind: "screen" } });
+  screenStream.getVideoTracks()[0].addEventListener("ended", () => stopShare(true));
+  $("shareBtn").setAttribute("aria-pressed", true);
+  $("shareLabel").textContent = "Stop sharing";
+  send(myState());
+};
+
+function stopShare(notify) {
+  try { screenOut && screenOut.close(); } catch (e) {}
+  try { screenStream && screenStream.getTracks().forEach(t => t.stop()); } catch (e) {}
+  screenOut = screenStream = null;
+  $("shareBtn").setAttribute("aria-pressed", false);
+  $("shareLabel").textContent = "Share screen";
+  if (notify) send(myState());
+}
+
+$("copyBtn").onclick = async () => {
+  const url = location.origin + location.pathname + "?code=" + partyCode;
+  try { await navigator.clipboard.writeText(url); $("copyBtn").textContent = "Copied"; }
+  catch (e) { $("copyBtn").textContent = partyCode; }
+  setTimeout(() => $("copyBtn").textContent = "Copy link", 1800);
+};
+</script>
+</body>
+</html>
